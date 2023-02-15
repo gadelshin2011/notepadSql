@@ -1,5 +1,6 @@
 package com.example.notepadsql
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.example.notepadsql.databinding.ActivityMainBinding
@@ -21,15 +22,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onClickListener() {
-        binding.button.setOnClickListener {
-            binding.tvTest.text = ""
-            myDbManager.openDb()
-            myDbManager.insertToDb(binding.edTitle.text.toString(), binding.edContent.text.toString())
-            val dataList = myDbManager.readDbData()
-            for (item in dataList) {
-                binding.tvTest.append(item)
-                binding.tvTest.append("\n")
-            }
+//        binding.button.setOnClickListener {
+//            binding.tvTest.text = ""
+//            myDbManager.openDb()
+//            myDbManager.insertToDb(binding.edTitle.text.toString(), binding.edContent.text.toString())
+//            val dataList = myDbManager.readDbData()
+//            for (item in dataList) {
+//                binding.tvTest.append(item)
+//                binding.tvTest.append("\n")
+//            }
+//        }
+
+        binding.fbNew.setOnClickListener {
+            val intent = Intent(this,EditActivity::class.java)
+            startActivity(intent)
         }
 
     }
