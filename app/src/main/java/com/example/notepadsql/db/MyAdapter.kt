@@ -23,6 +23,7 @@ class MyAdapter(listMain: ArrayList<ListItem>, contextM: Context) :
 
             itemView.setOnClickListener {
                 val intent = Intent(context, EditActivity::class.java).apply {
+                    putExtra(MyIntentConstants.I_ID_KEY, item.id)
                     putExtra(MyIntentConstants.I_TITLE_KEY, item.title)
                     putExtra(MyIntentConstants.I_DESC_KEY, item.desc)
                     putExtra(MyIntentConstants.I_URI_KEY, item.uri)
@@ -57,6 +58,14 @@ class MyAdapter(listMain: ArrayList<ListItem>, contextM: Context) :
         listArray.clear()
         listArray.addAll(listItems)
         notifyDataSetChanged()
+    }
+
+    fun removeItem(pos: Int, dbManager: MyDbManager) {
+
+        dbManager.removeItemFromDb(listArray[pos].id.toString())
+        listArray.removeAt(pos)
+        notifyItemChanged(0, listArray.size)
+        notifyItemRemoved(pos)
     }
 
 }
