@@ -9,6 +9,11 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.notepadsql.databinding.ActivityEditBinding
 import com.example.notepadsql.db.MyDbManager
 import com.example.notepadsql.db.MyIntentConstants
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
 class EditActivity : AppCompatActivity() {
     private lateinit var binding: ActivityEditBinding
@@ -58,8 +63,10 @@ class EditActivity : AppCompatActivity() {
 
         }
         binding.bnDeleteImage.setOnClickListener {
+            tempImageUri = "empty"
             binding.mainImageLayout.visibility = View.GONE
             binding.fbAddImage.visibility = View.VISIBLE
+
 
         }
 
@@ -88,13 +95,18 @@ class EditActivity : AppCompatActivity() {
         val myDesc = binding.edDesc.text.toString()
 
         if (myTitle != "" && myDesc != "") {
-            if (isEditState) {
-                myDbManager.updateItemFromDb(id, myTitle, myDesc, tempImageUri)
-            } else {
-                myDbManager.insertToDb(myTitle, myDesc, tempImageUri)
 
+            CoroutineScope(Dispatchers.Main).launch {
+
+                if (isEditState) {
+                    myDbManager.updateItemFromDb(id, myTitle, myDesc, tempImageUri, getCurrentTime())
+                } else {
+                    myDbManager.insertToDb(myTitle, myDesc, tempImageUri, getCurrentTime())
+
+                }
+                finish()
             }
-            this.finish()
+
         }
 
 
@@ -104,6 +116,10 @@ class EditActivity : AppCompatActivity() {
         binding.edTitle.isEnabled = true
         binding.edDesc.isEnabled = true
         binding.fbEditText.visibility = View.GONE
+        binding.fbAddImage.visibility = View.VISIBLE
+        if (tempImageUri == "empty") return
+        binding.bnEditImage.visibility = View.VISIBLE
+        binding.bnDeleteImage.visibility = View.VISIBLE
     }
 
     private fun getMyIntents() {
@@ -131,13 +147,21 @@ class EditActivity : AppCompatActivity() {
                     binding.bnDeleteImage.visibility = View.GONE
                     binding.bnEditImage.visibility = View.GONE
 
+                    tempImageUri = i.getStringExtra(MyIntentConstants.I_URI_KEY)!!
 
 
-                    binding.imMainImage.setImageURI(Uri.parse(i.getStringExtra(MyIntentConstants.I_URI_KEY)))
+
+                    binding.imMainImage.setImageURI(Uri.parse(tempImageUri))
 
                 }
             }
         }
+    }
+    private fun getCurrentTime(): String{
+        val time = Calendar.getInstance().time
+        val formatter = SimpleDateFormat("dd-MM-yy kk:mm", Locale.getDefault())
+        val fTime = formatter.format(time)
+        return fTime.toString()
     }
 
 }

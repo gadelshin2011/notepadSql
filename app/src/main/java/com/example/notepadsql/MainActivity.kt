@@ -2,7 +2,6 @@ package com.example.notepadsql
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
@@ -12,12 +11,17 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.notepadsql.databinding.ActivityMainBinding
 import com.example.notepadsql.db.MyAdapter
 import com.example.notepadsql.db.MyDbManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
     private val myDbManager = MyDbManager(this)
     private val myAdapter = MyAdapter(ArrayList(), this)
+    private var job: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,7 +37,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         myDbManager.openDb()
-        fillAdapter()
+        fillAdapter("")
     }
 
     private fun onClickListener() {
@@ -64,36 +68,43 @@ class MainActivity : AppCompatActivity() {
         binding.rcView.adapter = myAdapter
     }
 
-    private fun initSearchView(){
-        binding.searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener,
+    private fun initSearchView() {
+        binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener,
             android.widget.SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return false
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                val list = myDbManager.readDbData(newText!!)
-                myAdapter.updateAdapter(list)
-                Log.d("MyLog", "NewText: $newText")
+//                val list = myDbManager.readDbData(newText!!)
+//                myAdapter.updateAdapter(list)
+//                Log.d("MyLog", "NewText: $newText")
+                fillAdapter(newText!!)
                 return true
             }
         })
     }
 
-    private fun fillAdapter() {
-        val list = myDbManager.readDbData("")
-        myAdapter.updateAdapter(list)
-        if (list.size > 0) {
-            binding.tvNoElement.visibility = View.GONE
-        } else {
-            binding.tvNoElement.visibility = View.VISIBLE
+    private fun fillAdapter(text: String) {
+      job?.cancel()
+      job = CoroutineScope(Dispatchers.Main).launch {
+
+            val list = myDbManager.readDbData(text)
+
+            myAdapter.updateAdapter(list)
+            if (list.size > 0) {
+                binding.tvNoElement.visibility = View.GONE
+            } else {
+                binding.tvNoElement.visibility = View.VISIBLE
+            }
         }
+
 
     }
 
     private fun getSwapManager(): ItemTouchHelper {
         return ItemTouchHelper(object :
-            ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT or ItemTouchHelper.LEFT){
+            ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT or ItemTouchHelper.LEFT) {
             override fun onMove(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,
